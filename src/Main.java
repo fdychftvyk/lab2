@@ -1,3 +1,4 @@
+//базовый класс, от которого наследуются все игровые объекты
 abstract class GameObject {
     protected int id;
     protected String name;
@@ -10,10 +11,7 @@ abstract class GameObject {
         this.x = x;
         this.y = y;
     }
-//    private static int generateRandomID() {
-//        Random rand = new Random();
-//        return rand.nextInt(101);
-//    }
+
     public int getId() {
     return id;
 }
@@ -27,6 +25,9 @@ abstract class GameObject {
         return y;
     }
 }
+
+
+//класс, описывающий юниты - подразделения, люди, рабочие и т.д., которых можно контролировать:
  class Unit extends GameObject implements Moveable {
     private boolean alive;
     private float hp;
@@ -52,16 +53,24 @@ abstract class GameObject {
     public void moveTo(GameObject object, int x, int y){
         object.x=x;
         object.y=y;
+        System.out.println(name+" move to "+x+";"+y);
     }
  }
+
+
+//два интерфейса: Attacker и Moveable
  interface Attacker {
     void attack(Unit unit);
  }
+
  interface Moveable {
      void moveTo(GameObject object, int x, int y);
  }
+
+
+//класс, описывающий лучника: он реализует два интерфейса: Attacker и Moveable
 class Archer extends Unit implements Attacker, Moveable {
-    private float power;
+    private final float power;
 
     public Archer(int id, String name, int x, int y, boolean alive, float hp, float power) {
         super(id, name, x, y, alive, hp);
@@ -71,15 +80,20 @@ class Archer extends Unit implements Attacker, Moveable {
     @Override
     public void attack(Unit unit) {
         unit.receiveDamage(unit,power);
+        System.out.println(name+" attacks "+ unit.name);
     }
     @Override
     public void moveTo(GameObject object, int x, int y){
         object.x=y;
         object.y=y;
+        System.out.println(name+" move to "+x+";"+y);
     }
 }
+
+
+// класс, описывающий постройку
  class Building extends GameObject {
-    private boolean built;
+    private final boolean built;
 
     public Building(int id, String name, int x, int y, boolean built) {
         super(id, name, x, y);
@@ -90,8 +104,11 @@ class Archer extends Unit implements Attacker, Moveable {
         return built;
     }
 }
+
+
+//класс крепости, тоже реализует интерфейс Attacker (может из пушек стрелять в противников)
  class Fort extends Building implements Attacker {
-    private float power;
+    private final float power;
 
     public Fort(int id, String name, int x, int y, boolean built, float power) {
         super(id, name, x, y, built);
@@ -101,30 +118,50 @@ class Archer extends Unit implements Attacker, Moveable {
     @Override
     public void attack(Unit unit) {
         unit.receiveDamage(unit,power);
+        System.out.println(name+" attacks "+ unit.name);
     }
 }
- class MobileHouse extends Unit implements Moveable {
-    private int speed;
-    public MobileHouse(int id, String name, int x, int y, boolean alive, float hp, int speed) {
-        super(id, name, x, y, alive, hp);
+
+
+// класс дома на колёсах, реализует интерфейс Moveable
+ class MobileHouse extends Building implements Moveable {
+    private final int speed;
+    public MobileHouse(int id, String name, int x, int y, boolean built, int speed) {
+        super(id, name, x, y, built);
         this.speed=speed;
     }
      @Override
     public void moveTo(GameObject object, int x, int y) {
         object.x=x;
         object.y=y;
+        System.out.println(name+" move to "+x+";"+y+", speed = "+speed);
     }
 }
+
+
+
 public class Main {
     public static void main(String[] args) {
-        Unit human1 = new Unit(1, "Dude", 1, 1, true, 100);
-        Archer archer = new Archer(2,"vilian",2,2,true,100,50);
-        System.out.println(human1.getHp());
-        archer.attack(human1);
-        System.out.println(human1.getHp());
-        archer.attack(human1);
-        System.out.println(human1.getHp());
-        System.out.println(human1.isAlive());
+        Unit npc = new Unit(1, "npc", 1, 1, true, 100);
+
+        Archer archer = new Archer(2,"archer",2,2,true,100,50);
+
+        MobileHouse house = new MobileHouse(3,"house",0,0,true,10);
+
+        Fort fort = new Fort(4,"fort",3,3,true,100);
+
+        System.out.println(npc.name+ " live status = "+npc.isAlive());
+        System.out.println(npc.name+ " has " + npc.getHp()+ " hp");
+        archer.attack(npc);
+        System.out.println(npc.name+ " live status = "+npc.isAlive());
+        System.out.println(npc.name+ " has " + npc.getHp()+ " hp");
+        archer.attack(npc);
+        System.out.println(npc.name+ " live status = "+npc.isAlive());
+        System.out.println(archer.name+" live status = "+ archer.isAlive());
+        System.out.println(archer.name+ " has " + archer.getHp()+ " hp");
+        fort.attack(archer);
+        System.out.println(archer.name+" live status = "+ archer.isAlive());
+        house.moveTo(house,10,10);
     }
 }
 
